@@ -13,6 +13,7 @@
 #ifndef __UPOSITIONMAP_H
 #define __UPOSITIONMAP_H
 
+#include <set>
 #include "UAcquireDef.h"
 #include "UTypeDef.h"
 using namespace std;
@@ -50,6 +51,10 @@ public:
     void        ReadPositionTable(string f_strReadPath = strPositionTablePath);
     /* Return a position table for a specific Detector Unit */
     uint8*      GetPositionTable(uint32 f_nBDMId, uint32 f_nDUId);
+    /* Return a position map for a specific Detector Unit */
+    uint32*     GetPositionMap(uint32 f_nBDMId, uint32 f_nDUId);
+    /*Set a Mass Point for a specific Detector Unit */
+    void        SetMassPoint(uint32 f_nBDMId, uint32 f_nDUId,set<uint8> f_rowSet,set<uint8> f_colSet);
 
 private:
     /* Get a 2D position table from a position map with k-mean algorithm */
@@ -70,6 +75,8 @@ private:
     uint32*     m_pPositionMap;
     /* Pointer of position table. Record the GroupId(0-168) on each pixel */
     uint8*      m_pPositionTable;
+    /* Pointer of mass point. Record the mass points of each detector unit*/
+    Point*      m_pMassPoint;
 
 };
 

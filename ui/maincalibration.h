@@ -17,9 +17,6 @@ public:
     ~MainCalibration();
 
 private slots:
-    /*Test Function*/
-    void on_pushButton_clicked();
-
     /*Turn to positon map and table*/
     void on_pushButton_2_clicked();
 

@@ -2,14 +2,17 @@
 
 #include <QApplication>
 #include <QDebug>
-#include "./tool/compress/include/quazip/JlCompress.h"
+#include <set>
+#include "./calibration/position/UPositionMap.h"
+#include "./ui/positionmap.h"
+
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-//    Widget w;
-//    w.show();
-   // qDebug()<<JlCompress::compressDir("test.zip","test");
-    JlCompress::extractDir("test.zip","test");
+    Widget w;
+    w.show();
+
+
     return a.exec();
 }
