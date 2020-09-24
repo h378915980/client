@@ -56,6 +56,12 @@ UPositionMap::~UPositionMap()
     RELEASE_POINTER(m_pMassPoint);
 }
 
+void UPositionMap::clear()
+{
+    memset(m_pPositionMap, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
+    memset(m_pPositionTable, 0, sizeof(uint8) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
+    memset(m_pMassPoint,0,sizeof(Point) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize);
+}
 
 /**********************************************************
 Function：         CreatePositionMap(string f_strReadPath)

@@ -6,20 +6,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>753</width>
-    <height>663</height>
+    <width>1359</width>
+    <height>1027</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,2,1,5,2">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,5,1,2,5">
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string/>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
@@ -66,6 +72,12 @@
       <string/>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
         <item>
@@ -135,6 +147,12 @@
       <string/>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QPushButton" name="pushButton_2">
         <property name="text">
@@ -249,13 +267,13 @@
          <number>20</number>
         </attribute>
         <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>30</number>
+         <number>35</number>
         </attribute>
         <attribute name="verticalHeaderMinimumSectionSize">
          <number>20</number>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
-         <number>30</number>
+         <number>35</number>
         </attribute>
         <row/>
         <row/>
@@ -780,6 +798,12 @@
       <string/>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0">
         <item>

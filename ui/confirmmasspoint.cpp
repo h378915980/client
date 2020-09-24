@@ -41,6 +41,18 @@ void ConfirmMassPoint::initTableWiget()
         }
     }
 
+    ui->tableWidget->horizontalHeader()->setVisible(false);
+    ui->tableWidget->verticalHeader()->setVisible(false);
+
+    ui->tableWidget->horizontalHeader()->setDefaultSectionSize(3);
+    ui->tableWidget->horizontalHeader()->setMinimumSectionSize(3);
+    ui->tableWidget->verticalHeader()->setDefaultSectionSize(3);
+    ui->tableWidget->verticalHeader()->setMinimumSectionSize(3);
+
+    ui->tableWidget->setShowGrid(false);
+
+    ui->tableWidget->setMinimumSize(800,800);
+
     if(markDirection==DirectionType::ROW)
     {
         ui->pushButton->setText("row");

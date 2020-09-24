@@ -1,29 +1,97 @@
 #include "positionmap.h"
 #include "ui_positionmap.h"
-
+#include <QSizePolicy>
 
 #define POSITION_MAP_SIZE       256
 #define POSITION_BDM_NUM        24
 #define POSITION_DU_NUM         4
 #define POSITION_CRYSTAL_SIZE   13
 
+const unsigned char ColorR[13]={255,200,240,161,102,200,94,77,60,92,199,150};
+const unsigned char ColorG[13]={100,150,240,226,170,250,162,138,87,68,9,0};
 
 PositionMap::PositionMap(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PositionMap)
 {
     ui->setupUi(this);
+    ui->groupBox_5->setVisible(false);
+    //setTableWidgetProperty(ui->tableWidget_9);
 
     posMap=new UPositionMap();
 
+
+//    ui->groupBox_2->setVisible(false);
+//    ui->groupBox_4->setVisible(false);
+
     initUI();
     clearMassPoints();
+
+    showPositionMap();
+    showPositionTable();
 }
 
 PositionMap::~PositionMap()
 {
     delete ui;
 }
+
+//test table button
+void PositionMap::on_pushButton_6_clicked()
+{
+    qDebug()<<"test table button clicked";
+    posMap->ReadPositionTable("calibration/PositionMap/positionTable.dat");
+    //showPositionTable();
+
+    for(int col=0;col<ui->tableWidget_9->columnCount();col++)
+    {
+        for(int row=0;row<ui->tableWidget_9->rowCount();row++)
+        {
+            ui->tableWidget_9->setItem(row,col,new QTableWidgetItem(0));
+        }
+    }
+    unsigned char* table=posMap->GetPositionTable(10,1);
+
+    unsigned char value=0;
+    unsigned char cur[255];
+    unsigned char topValue[255];
+    std::set<unsigned char> type;
+    for(int row=0;row<ui->tableWidget_9->rowCount();row++)
+    {
+        for(int col=0;col<ui->tableWidget_9->columnCount();col++)
+        {
+            value=table[row*ui->tableWidget_9->rowCount()+col];
+            //show color
+            //变色思路：
+            //发现：现在数字是从小往大依次递增的，必然一行对应13个
+            //
+            if(row==0)
+            {
+                topValue[col]=value;
+                cur[col]=0;
+            }
+            else
+            {
+                if(value!=topValue[col])
+                {
+                    topValue[col]=value;
+                    cur[col]++;
+                }
+            }
+
+            ui->tableWidget_9->item(row,col)->setBackground(QBrush(
+                QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
+                        ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
+                        100)));
+
+            //show number
+            //ui->tableWidget_9->item(row,col)->setText(QString::number(value));
+        }
+    }
+
+}
+
+
 
 void PositionMap::initUI()
 {
@@ -45,27 +113,10 @@ void PositionMap::initUI()
 
 void PositionMap::setTableWidgetProperty(QTableWidget *tableWidget)
 {
-    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-    tableWidget->horizontalHeader()->setVisible(false);
-    tableWidget->verticalHeader()->setVisible(false);
-
-    tableWidget->horizontalHeader()->setDefaultSectionSize(2);
-    tableWidget->horizontalHeader()->setMinimumSectionSize(1);
-    tableWidget->verticalHeader()->setDefaultSectionSize(2);
-    tableWidget->verticalHeader()->setMinimumSectionSize(1);
 
 
     tableWidget->setRowCount(POSITION_MAP_SIZE);
     tableWidget->setColumnCount(POSITION_MAP_SIZE);
-
-    tableWidget->setShowGrid(false);
-
-    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
-    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-
 
     for(int col=0;col<tableWidget->columnCount();col++)
     {
@@ -75,6 +126,27 @@ void PositionMap::setTableWidgetProperty(QTableWidget *tableWidget)
         }
     }
 
+
+    tableWidget->horizontalHeader()->setVisible(false);
+    tableWidget->verticalHeader()->setVisible(false);
+
+    tableWidget->horizontalHeader()->setDefaultSectionSize(1);
+    tableWidget->horizontalHeader()->setMinimumSectionSize(1);
+    tableWidget->verticalHeader()->setDefaultSectionSize(1);
+    tableWidget->verticalHeader()->setMinimumSectionSize(1);
+
+    tableWidget->setShowGrid(false);
+
+    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+
+    tableWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    tableWidget->setMinimumSize(260,260);
 }
 
 //open dir
@@ -110,9 +182,13 @@ void PositionMap::on_pushButton_clicked()
     }
 
 
-    //success
+    //success and clear previous data
     clearMassPoints();
+    posMap->clear();
+    showPositionMap();
+    showPositionTable();
 
+    //read and create
     std::string dirPath=ui->lineEdit->text().toStdString();
     //notice the sample file name is changed
     posMap->CreatePositionMap(dirPath);
@@ -231,8 +307,31 @@ void PositionMap::showSpecificPositionTable(QTableWidget *tableWidget, unsigned 
         for(int col=0;col<tableWidget->columnCount();col++)
         {
             value=table[row*tableWidget->rowCount()+col];
-            //tableWidget->item(row,col)->setBackground(QBrush(QColor(0 , 0, value)));
-            tableWidget->item(row,col)->setText(QString::number(value));
+            //show color
+            tableWidget->item(row,col)->setBackground(QBrush(
+                        QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
+                                ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
+                                value)));
+            //show number
+            //tableWidget->item(row,col)->setText(QString::number(value));
+        }
+    }
+
+    //show mass point with red line
+    MassPoint tMassPoint=massPoints[m_nBDMId*POSITION_DU_NUM+DUId];
+    for(std::set<unsigned char>::iterator iterRow=tMassPoint.rowSet.begin();iterRow!=tMassPoint.rowSet.end();iterRow++)
+    {
+        for(int j=0;j<tableWidget->columnCount();j++)
+        {
+            tableWidget->item(*iterRow,j)->setBackground(QBrush(QColor(255, 0, 0)));
+        }
+    }
+
+    for(std::set<unsigned char>::iterator iterCol=tMassPoint.colSet.begin();iterCol!=tMassPoint.colSet.end();iterCol++)
+    {
+        for(int i=0;i<tableWidget->rowCount();i++)
+        {
+            tableWidget->item(i,*iterCol)->setBackground(QBrush(QColor(255, 0, 0)));
         }
     }
 
@@ -328,19 +427,4 @@ void PositionMap::showMassPointDialog(unsigned int DUId)
 }
 
 
-//test table button
-void PositionMap::on_pushButton_6_clicked()
-{
-    qDebug()<<"test table button clicked";
-    posMap->ReadPositionTable("calibration/PositionMap/positionTable.dat");
-    //showPositionTable();
 
-    for(int col=0;col<ui->tableWidget_9->columnCount();col++)
-    {
-        for(int row=0;row<ui->tableWidget_9->rowCount();row++)
-        {
-            ui->tableWidget_9->setItem(row,col,new QTableWidgetItem(0));
-        }
-    }
-    showSpecificPositionTable(ui->tableWidget_9,0);
-}
