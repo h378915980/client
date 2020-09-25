@@ -15,14 +15,14 @@ PositionMap::PositionMap(QWidget *parent) :
     ui(new Ui::PositionMap)
 {
     ui->setupUi(this);
-    ui->groupBox_5->setVisible(false);
-    //setTableWidgetProperty(ui->tableWidget_9);
-
     posMap=new UPositionMap();
 
-
+//    setTableWidgetProperty(ui->tableWidget_9);
 //    ui->groupBox_2->setVisible(false);
 //    ui->groupBox_4->setVisible(false);
+
+    ui->groupBox_5->setVisible(false);
+
 
     initUI();
     clearMassPoints();
@@ -40,6 +40,7 @@ PositionMap::~PositionMap()
 void PositionMap::on_pushButton_6_clicked()
 {
     qDebug()<<"test table button clicked";
+    posMap->ReadPositionMap("calibration/PositionMap/positionMap.dat");
     posMap->ReadPositionTable("calibration/PositionMap/positionTable.dat");
     //showPositionTable();
 
@@ -51,43 +52,39 @@ void PositionMap::on_pushButton_6_clicked()
         }
     }
     unsigned char* table=posMap->GetPositionTable(10,1);
+    unsigned int*  map=posMap->GetPositionMap(10,1);
 
     unsigned char value=0;
-    unsigned char cur[255];
-    unsigned char topValue[255];
-    std::set<unsigned char> type;
+    unsigned int  mapValue=0;
+
     for(int row=0;row<ui->tableWidget_9->rowCount();row++)
     {
         for(int col=0;col<ui->tableWidget_9->columnCount();col++)
         {
             value=table[row*ui->tableWidget_9->rowCount()+col];
-            //show color
-            //变色思路：
-            //发现：现在数字是从小往大依次递增的，必然一行对应13个
-            //
-            if(row==0)
+            mapValue=map[row*ui->tableWidget_9->rowCount()+col];
+
+            //show map point
+            ui->tableWidget_9->item(row,col)->setBackground(QBrush(QColor( 0 ,0,mapValue)));
+            //show border line
+            if(row!=0 || col!=0)
             {
-                topValue[col]=value;
-                cur[col]=0;
-            }
-            else
-            {
-                if(value!=topValue[col])
+                if(value!=table[(row-1)*ui->tableWidget_9->rowCount()+col]
+                        ||value!=table[row*ui->tableWidget_9->rowCount()+col-1])
                 {
-                    topValue[col]=value;
-                    cur[col]++;
+                    ui->tableWidget_9->item(row,col)->setBackground(QBrush(
+                        QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
+                                ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
+                                100)));
                 }
             }
 
-            ui->tableWidget_9->item(row,col)->setBackground(QBrush(
-                QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
-                        ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
-                        100)));
 
             //show number
-            //ui->tableWidget_9->item(row,col)->setText(QString::number(value));
+            //ui->tableWidget_9->item(row,col)->setText(QString::number(mapValue));
         }
     }
+
 
 }
 
@@ -300,41 +297,37 @@ void PositionMap::showSpecificPositionMap(QTableWidget *tableWidget, unsigned in
 //show specific DU's position table
 void PositionMap::showSpecificPositionTable(QTableWidget *tableWidget, unsigned int DUId)
 {
+
+    unsigned int* map=posMap->GetPositionMap(m_nBDMId,DUId);
     unsigned char* table=posMap->GetPositionTable(m_nBDMId,DUId);
-    unsigned char value=0;
+
+    unsigned char tableValue=0;
+    unsigned int  mapValue=0;
+
+
+
     for(int row=0;row<tableWidget->rowCount();row++)
     {
         for(int col=0;col<tableWidget->columnCount();col++)
         {
-            value=table[row*tableWidget->rowCount()+col];
+            tableValue=table[row*tableWidget->rowCount()+col];
+            mapValue=map[row*tableWidget->rowCount()+col];
+
+            //show map point
+            tableWidget->item(row,col)->setBackground(QBrush(QColor( 0 ,0,mapValue)));
+
             //show color
-            tableWidget->item(row,col)->setBackground(QBrush(
-                        QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
-                                ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
-                                value)));
-            //show number
-            //tableWidget->item(row,col)->setText(QString::number(value));
+            if(tableValue!=table[(row-1)*ui->tableWidget_9->rowCount()+col]
+                    ||tableValue!=table[row*ui->tableWidget_9->rowCount()+col-1])
+            {
+//                tableWidget->item(row,col)->setBackground(QBrush(
+//                    QColor( ColorR[(int)(tableValue/POSITION_CRYSTAL_SIZE)] ,
+//                            ColorG[(int)(tableValue/POSITION_CRYSTAL_SIZE)],
+//                            tableValue)));
+                tableWidget->item(row,col)->setBackground(QBrush(QColor(255,0,0)));
+            }
         }
     }
-
-    //show mass point with red line
-    MassPoint tMassPoint=massPoints[m_nBDMId*POSITION_DU_NUM+DUId];
-    for(std::set<unsigned char>::iterator iterRow=tMassPoint.rowSet.begin();iterRow!=tMassPoint.rowSet.end();iterRow++)
-    {
-        for(int j=0;j<tableWidget->columnCount();j++)
-        {
-            tableWidget->item(*iterRow,j)->setBackground(QBrush(QColor(255, 0, 0)));
-        }
-    }
-
-    for(std::set<unsigned char>::iterator iterCol=tMassPoint.colSet.begin();iterCol!=tMassPoint.colSet.end();iterCol++)
-    {
-        for(int i=0;i<tableWidget->rowCount();i++)
-        {
-            tableWidget->item(i,*iterCol)->setBackground(QBrush(QColor(255, 0, 0)));
-        }
-    }
-
 }
 //show all position map with specific BDM
 void PositionMap::showPositionMap()
