@@ -20,10 +20,6 @@ MainCalibration::~MainCalibration()
     delete ui;
 }
 
-void MainCalibration::on_pushButton_clicked()
-{
-    ui->lineEdit->setText(QString::number(num++));
-}
 
 //position map
 void MainCalibration::on_pushButton_2_clicked()

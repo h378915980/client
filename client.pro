@@ -15,6 +15,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+unix|win32: LIBS += -L$$PWD/tool/compress/lib/ -lquazip
+INCLUDEPATH += $$PWD/tool/compress/include/quazip/
+DEPENDPATH += $$PWD/tool/compress/include/quazip/
+
+
 SOURCES += \
     calibration/position/UPositionMap.cpp \
     main.cpp \
@@ -33,6 +38,22 @@ HEADERS += \
     calibration/position/UTypeDef.h \
     calibration/position/libAcquirePET_global.h \
     maincalibration.h \
+    tool/compress/include/quazip/JlCompress.h \
+    tool/compress/include/quazip/crypt.h \
+    tool/compress/include/quazip/ioapi.h \
+    tool/compress/include/quazip/quaadler32.h \
+    tool/compress/include/quazip/quachecksum32.h \
+    tool/compress/include/quazip/quacrc32.h \
+    tool/compress/include/quazip/quagzipfile.h \
+    tool/compress/include/quazip/quaziodevice.h \
+    tool/compress/include/quazip/quazip.h \
+    tool/compress/include/quazip/quazip_global.h \
+    tool/compress/include/quazip/quazipdir.h \
+    tool/compress/include/quazip/quazipfile.h \
+    tool/compress/include/quazip/quazipfileinfo.h \
+    tool/compress/include/quazip/quazipnewinfo.h \
+    tool/compress/include/quazip/unzip.h \
+    tool/compress/include/quazip/zip.h \
     tool/fileOperator.h \
     tool/inifile.h \
     ui/confirmmasspoint.h \
@@ -56,3 +77,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     iconQrc.qrc
+

@@ -38,10 +38,12 @@ UPositionMap::UPositionMap()
     /* Allocate memory for m_pPositionMap and m_pPositionTable, and set to zero */
     m_pPositionMap = new uint32[m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize]; //4*24*4*256*256 =24MB
     m_pPositionTable = new uint8[m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize];//1*24*4*256*256 =6MB
+    m_pMassPoint = new Point[m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize];      //2*24*4*13*13 =32KB
+
     memset(m_pPositionMap, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
     memset(m_pPositionTable, 0, sizeof(uint8) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
+    memset(m_pMassPoint,0,sizeof(Point) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize);
 
-    //printf("UPositionMap:map length:%d\n",(int)malloc_usable_size(m_pPositionMap));
 }
 
 /***********************
@@ -51,8 +53,15 @@ UPositionMap::~UPositionMap()
 {
     RELEASE_POINTER(m_pPositionMap);
     RELEASE_POINTER(m_pPositionTable);   
+    RELEASE_POINTER(m_pMassPoint);
 }
 
+void UPositionMap::clear()
+{
+    memset(m_pPositionMap, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
+    memset(m_pPositionTable, 0, sizeof(uint8) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
+    memset(m_pMassPoint,0,sizeof(Point) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize);
+}
 
 /**********************************************************
 Function：         CreatePositionMap(string f_strReadPath)
@@ -72,16 +81,23 @@ void UPositionMap::CreatePositionMap(string f_strReadPath)
     /* Read raw data from files. Counts on each pixel are accumulating */
     for(uint32 i = 0; i < m_nBDMNum; i++)
     {
-        fp.open((f_strReadPath + to_string(i)).c_str());
+        //the format of sample input file is changed
+        //before
+        //fp.open((f_strReadPath + to_string(i)).c_str());
+        //now
+        fp.open((f_strReadPath+"/"+ to_string(i)).c_str());
+
         if(fp.is_open())
         {
             #ifdef DEBUG
-                printf("Open file %s succeeds\n", (f_strReadPath + to_string(i)).c_str());
+                //printf("Open file %s succeeds\n", (f_strReadPath + to_string(i)).c_str());
+                printf("Open file %s succeeds\n", (f_strReadPath+"/"+ to_string(i)).c_str());
             #endif
         }
         else{
             #ifdef DEBUG
-                printf("Open file %s fails\n", (f_strReadPath + to_string(i)).c_str());
+                //printf("Open file %s fails\n", (f_strReadPath + to_string(i)).c_str());
+                printf("Open file %s fails\n", (f_strReadPath+"/"+ to_string(i)).c_str());
             #endif
         }
         /* Calculate the size of the file */
@@ -136,6 +152,10 @@ void UPositionMap::SavePositionMap(string f_strSavePath)
     }
     fp.write((char*)m_pPositionMap, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
     fp.close();
+
+    #ifdef DEBUG
+        printf("write file %s finished\n", f_strSavePath.c_str());
+    #endif
 }
 
 
@@ -189,6 +209,8 @@ void UPositionMap::CreatePositionTable()
     {
         for(uint32 j = 0; j < m_nDUNum; j++)
         {
+            memcpy(l_pMassPoint,m_pMassPoint + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize + j * m_nCrystalSize * m_nCrystalSize,sizeof(Point) * m_nCrystalSize * m_nCrystalSize);
+
             memcpy(l_pTempMap, m_pPositionMap + i * m_nDUNum * m_nPositionSize * m_nPositionSize + j * m_nPositionSize * m_nPositionSize, sizeof(uint32) * m_nPositionSize * m_nPositionSize);
             /*************/ 
             /* Important */
@@ -201,7 +223,12 @@ void UPositionMap::CreatePositionTable()
 			memset(l_pTempTable, 0, sizeof(uint8) * m_nPositionSize * m_nPositionSize);
 			memset(l_pMassPoint, 0, sizeof(Point) * m_nCrystalSize * m_nCrystalSize);
 		}
-    }   
+    }
+
+#ifdef DEBUG
+    printf("UPositionMap: create position table finished\n");
+#endif
+
 }
 
 /**********************************************************
@@ -450,6 +477,11 @@ void UPositionMap::SavePositionTable(string f_strSavePath)
     }
     fp.write((char*)m_pPositionTable, sizeof(uint8) * m_nBDMNum * m_nDUNum * m_nPositionSize * m_nPositionSize);
     fp.close();
+
+    #ifdef DEBUG
+        printf("write file %s finished\n", f_strSavePath.c_str());
+    #endif
+
 }
 
 
@@ -491,6 +523,73 @@ uint8* UPositionMap::GetPositionTable(uint32 f_nBDMId, uint32 f_nDUId)
 {
     return m_pPositionTable + f_nBDMId * m_nDUNum * m_nPositionSize * m_nPositionSize + f_nDUId * m_nPositionSize * m_nPositionSize;
 }
+
+/**********************************************************
+Function：         GetPositionMap(uint32 f_nBDMId, uint32 f_nDUId)
+Description：      Return a position map for a specific Detector Unit
+                   with information of BDM and DU.
+Called By：        UCoinPET.cpp
+Return：           uint32*
+Others：           None
+**********************************************************/
+uint32* UPositionMap::GetPositionMap(uint32 f_nBDMId, uint32 f_nDUId)
+{
+    return m_pPositionMap + f_nBDMId * m_nDUNum * m_nPositionSize * m_nPositionSize + f_nDUId * m_nPositionSize * m_nPositionSize;
+}
+
+/**********************************************************
+Function：
+Description：      Set a Mass Point for a specific Detector Unit.
+Called By：
+Return：           None
+Others：           None
+**********************************************************/
+void UPositionMap::SetMassPoint(uint32 f_nBDMId, uint32 f_nDUId, set<uint8> f_rowSet, set<uint8> f_colSet)
+{
+    if(f_rowSet.size()!=m_nCrystalSize || f_colSet.size()!= m_nCrystalSize)
+    {
+        #ifdef DEBUG
+            printf("UPositionMap: row or col set size is wrong, row set size:%d  col set size:%d\n",(int)f_rowSet.size(),(int)f_colSet.size());
+        #endif
+        return;
+    }
+
+    //row is y, col is x
+    set<uint8>::iterator iterRowY;
+    set<uint8>::iterator iterColX;
+
+    uint32 l_nBase=f_nBDMId * m_nDUNum * m_nCrystalSize * m_nCrystalSize + f_nDUId * m_nCrystalSize * m_nCrystalSize;
+
+    for(iterRowY=f_rowSet.begin();iterRowY!=f_rowSet.end();iterRowY++)
+    {
+        for(iterColX=f_colSet.begin();iterColX!=f_colSet.end();iterColX++)
+        {
+            m_pMassPoint[l_nBase].y=*iterRowY;
+            m_pMassPoint[l_nBase].x=*iterColX;
+            l_nBase++;
+        }
+    }
+
+    #ifdef DEBUG
+        int i=f_nBDMId * m_nDUNum * m_nCrystalSize * m_nCrystalSize + f_nDUId * m_nCrystalSize * m_nCrystalSize;
+        for(int j=0;j<13*13;j++)
+        {
+            printf("UPositionMap: BDM:%d,  DU:%d mass point y:%d,  x:%d\n",f_nBDMId,f_nDUId,m_pMassPoint[i+j].y,m_pMassPoint[i+j].x);
+        }
+    #endif
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
