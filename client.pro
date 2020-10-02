@@ -19,8 +19,12 @@ unix|win32: LIBS += -L$$PWD/tool/compress/lib/ -lquazip
 INCLUDEPATH += $$PWD/tool/compress/include/quazip/
 DEPENDPATH += $$PWD/tool/compress/include/quazip/
 
+unix|win32: LIBS +=-L/home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/lib/  -lqwt
+INCLUDEPATH += /home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/include/qwt
+DEPENDPATH += /home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/include/qwt
 
 SOURCES += \
+    calibration/energy/UEnergyProfile.cpp \
     calibration/position/UPositionMap.cpp \
     main.cpp \
     tool/fileOperator.cpp \
@@ -33,6 +37,10 @@ SOURCES += \
     widget.cpp
 
 HEADERS += \
+    calibration/energy/UAcquireDef.h \
+    calibration/energy/UEnergyProfile.h \
+    calibration/energy/UTypeDef.h \
+    calibration/energy/libAcquirePET_global.h \
     calibration/position/UAcquireDef.h \
     calibration/position/UPositionMap.h \
     calibration/position/UTypeDef.h \

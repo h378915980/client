@@ -55,7 +55,7 @@ public:
     uint32*     GetPositionMap(uint32 f_nBDMId, uint32 f_nDUId);
     /*Set a Mass Point for a specific Detector Unit */
     void        SetMassPoint(uint32 f_nBDMId, uint32 f_nDUId,set<uint8> f_rowSet,set<uint8> f_colSet);
-    /*clear m_pPositionMap ,m_pPositonTable and m_pMassPoint */
+    /*memset m_pPositionMap ,m_pPositonTable and m_pMassPoint  0 */
     void        clear();
 
 private:
