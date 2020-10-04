@@ -127,7 +127,7 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,5">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -240,11 +240,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QTableWidget" name="tableWidget"/>
-        </item>
-       </layout>
+       <widget class="QTableWidget" name="tableWidget"/>
       </item>
      </layout>
     </widget>

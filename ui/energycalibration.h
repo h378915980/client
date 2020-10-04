@@ -10,7 +10,7 @@
 #include <qwt_symbol.h>
 #include <qwt_plot_item.h>
 #include <qwt_plot_scaleitem.h>
-
+#include <qwt_plot_marker.h>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTableWidget>
@@ -46,6 +46,8 @@ private slots:
     void on_pushButton_6_clicked();
 
     void on_pushButton_7_clicked();
+
+    void on_tableWidget_cellClicked(int row, int column);
 
 private:
     Ui::EnergyCalibration *ui;

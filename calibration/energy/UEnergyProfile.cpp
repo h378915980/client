@@ -40,9 +40,10 @@ UEnergyProfile::UEnergyProfile()
     /* 0 <= E < 10, 10 <= E < 20, ... 9990 <= E < 10000 */
     m_pEnergyProfile = new uint32[m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000];   //4*24*4*13*13*1000=64,896,000
     m_pEnergyCorrFactor = new float[m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000]; //4*24*4*13*13*1000=64,896,000
+    m_pEnergyRecord = new uint32[m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize];           //4*24*4*13*13
     memset(m_pEnergyProfile, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000);
     memset(m_pEnergyCorrFactor, 0, sizeof(float) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000);
-
+    memset(m_pEnergyRecord, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize);
 }
 
 
@@ -54,13 +55,14 @@ UEnergyProfile::~UEnergyProfile()
     RELEASE_POINTER(m_pPositionMap);
     RELEASE_POINTER(m_pEnergyProfile);
     RELEASE_POINTER(m_pEnergyCorrFactor);
-    
+    RELEASE_POINTER(m_pEnergyRecord);
 }
 
 void UEnergyProfile::Clear()
 {
     memset(m_pEnergyProfile, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000);
     memset(m_pEnergyCorrFactor, 0, sizeof(float) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000);
+    memset(m_pEnergyRecord, 0, sizeof(uint32) * m_nBDMNum * m_nDUNum * m_nCrystalSize * m_nCrystalSize);
 }
 
 /**********************************************************
@@ -122,6 +124,37 @@ void UEnergyProfile::CreateEnergyProfile(string f_strReadPath, string f_strPosit
         fp.close();
         RELEASE_ARRAY_POINTER(l_pTempFrame);
     }   
+
+    //init the m_pEnergyRecord to maxium counts of energy interval
+    for(uint32 i = 0; i < m_nBDMNum; i++)
+    {
+        for(uint32 j = 0; j < m_nDUNum; j++)
+        {
+            for(uint32 k = 0; k < m_nCrystalSize * m_nCrystalSize; k++)
+            {
+                uint32 l_nMaxCounts = 0;
+                uint32 l_nRecord = 0;
+                uint32* l_pTempProfile=m_pEnergyProfile + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000
+                                                        + j * m_nCrystalSize * m_nCrystalSize * 1000
+                                                        + k * 1000;
+
+                for(uint16 curr = 0; curr < 1000; curr++)
+                {
+                    /* Find the energy with the maximum counts */
+                    if(l_nMaxCounts <= l_pTempProfile[curr])
+                    {
+                        l_nMaxCounts = l_pTempProfile[curr];
+                        l_nRecord = curr;
+                    }
+                }
+
+                m_pEnergyRecord[i * m_nDUNum * m_nCrystalSize * m_nCrystalSize
+                        + j * m_nCrystalSize * m_nCrystalSize
+                        + k] = l_nRecord;
+            }
+        }
+    }
+
 }
 
 
@@ -167,20 +200,31 @@ Others：           None
 void UEnergyProfile::CreateEnergyCorrFactor()
 {
     /* Allocate a temporary profile and factor array for each crystal */
-    uint32* l_pTempProfile = new uint32[1000];
-    float* l_pTempCorrFactor = new float[1000];
+//    uint32* l_pTempProfile = new uint32[1000];
+//    float* l_pTempCorrFactor = new float[1000];
+
     for(uint32 i = 0; i < m_nBDMNum; i++)
     {
         for(uint32 j = 0; j < m_nDUNum; j++)
         {
             for(uint32 k = 0; k < m_nCrystalSize * m_nCrystalSize; k++)
             {
-                memcpy(l_pTempProfile, m_pEnergyProfile + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000 + j * m_nCrystalSize * m_nCrystalSize * 1000 + k * 1000, sizeof(uint32) * 1000);
-                /*************/ 
-                /* Important */
-                NormalizeEnergy(l_pTempProfile, l_pTempCorrFactor);
-                /*************/
-                memcpy(m_pEnergyCorrFactor + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000 + j * m_nCrystalSize * m_nCrystalSize * 1000 + k * 1000, l_pTempCorrFactor, sizeof(float) * 1000);
+                //hpy:we need get m_pEnergyRecord from ui rather than maxium value
+//                memcpy(l_pTempProfile, m_pEnergyProfile + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000 + j * m_nCrystalSize * m_nCrystalSize * 1000 + k * 1000, sizeof(uint32) * 1000);
+//                /*************/
+//                /* Important */
+//                NormalizeEnergy(l_pTempProfile, l_pTempCorrFactor);
+//                /*************/
+//                memcpy(m_pEnergyCorrFactor + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000 + j * m_nCrystalSize * m_nCrystalSize * 1000 + k * 1000, l_pTempCorrFactor, sizeof(float) * 1000);
+
+                float* l_pTempCorrFactor = m_pEnergyCorrFactor + i * m_nDUNum * m_nCrystalSize * m_nCrystalSize * 1000 + j * m_nCrystalSize * m_nCrystalSize * 1000 + k * 1000;
+                uint32 l_nRecord = m_pEnergyRecord[i * m_nDUNum * m_nCrystalSize * m_nCrystalSize + j * m_nCrystalSize * m_nCrystalSize + k];
+                /* Liner normalization. SiPM saturation should be taken into account. To be improved. */
+                for(uint16 j = 0; j < 1000; j++)
+                {
+                    l_pTempCorrFactor[j] = 511.0 / (l_nRecord * 10 + 5);
+                }
+
             }
         }   
     }
@@ -314,3 +358,16 @@ uint32* UEnergyProfile::GetEnergyProfile(uint32 f_nBDMId, uint32 f_nDUId, uint32
                                  f_nLocalCrystalId * 1000;
 }
 
+uint32 UEnergyProfile::GetEnergyRecord(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId)
+{
+    return *(m_pEnergyRecord + f_nBDMId * m_nDUNum * m_nCrystalSize * m_nCrystalSize  +
+                                 f_nDUId * m_nCrystalSize * m_nCrystalSize +
+                                 f_nLocalCrystalId);
+}
+
+void UEnergyProfile::SetEnergyRecord(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId,uint32 f_nXValue)
+{
+    *(m_pEnergyRecord + f_nBDMId * m_nDUNum * m_nCrystalSize * m_nCrystalSize  +
+                                     f_nDUId * m_nCrystalSize * m_nCrystalSize +
+                                     f_nLocalCrystalId)=f_nXValue;
+}

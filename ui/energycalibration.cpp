@@ -8,7 +8,17 @@ EnergyCalibration::EnergyCalibration(QWidget *parent) :
     ui->setupUi(this);
     energyProfile=new UEnergyProfile();
 
-
+    setTableWidgetProperty(ui->tableWidget);
+//    for(int i=0;i<13;i++)
+//    {
+//        for(int j=0;j<13;j++)
+//        {
+//            //QwtPlot* plot=new QwtPlot();
+//            //setPlotProperty(plot);
+//            ui->tableWidget->setCellWidget(i,j,new QwtPlot());
+//            //ui->gridLayout->addWidget(plot,i,j);
+//        }
+//    }
 }
 
 EnergyCalibration::~EnergyCalibration()
@@ -77,10 +87,10 @@ void EnergyCalibration::on_pushButton_clicked()
     showEnergyProfile();
 }
 
-void EnergyCalibration::setPlotProperty(QwtPlot *qwtPlot, QVector<QPointF> &data)
+void EnergyCalibration::setPlotProperty(QwtPlot *qwtPlot,QVector<QPointF> &data)
 {
 
-    qwtPlot->setMinimumSize(100,100);
+   qwtPlot->setMinimumSize(300,200);
 
     //canvas
     QwtPlotCanvas *canvas=new QwtPlotCanvas();
@@ -91,22 +101,36 @@ void EnergyCalibration::setPlotProperty(QwtPlot *qwtPlot, QVector<QPointF> &data
     //axis
 //    qwtPlot->setAxisTitle(QwtPlot::yLeft,"count");
 //    qwtPlot->setAxisTitle(QwtPlot::xBottom,"energy");
-    qwtPlot->setAxisScale(QwtPlot::yLeft,0.0,100.0);
+    //qwtPlot->setAxisScale(QwtPlot::yLeft,0.0,100.0);
+    //qwtPlot->setAxisAutoScale(QwtPlot::yLeft);
     qwtPlot->setAxisScale(QwtPlot::xBottom,0.0,1000.0);
+
     qwtPlot->setAxisMaxMinor(QwtPlot::xBottom,1);
     qwtPlot->setAxisMaxMinor(QwtPlot::yLeft,2);
-    qwtPlot->enableAxis(QwtPlot::yLeft,false);
-    qwtPlot->enableAxis(QwtPlot::xBottom,false);
+//    qwtPlot->enableAxis(QwtPlot::yLeft,false);
+//    qwtPlot->enableAxis(QwtPlot::xBottom,false);
 
     //curve
     QwtPlotCurve* curve=new QwtPlotCurve();
-    curve->setPen(Qt::blue,0.1);
+    curve->setPen(Qt::blue,0.5);
     curve->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
     //add point
     curve->setSamples(data);
     //show
     curve->attach(qwtPlot);
+
+    //add marker
+    QwtPlotMarker* marker=new QwtPlotMarker("511");
+    marker->setLineStyle(QwtPlotMarker::VLine);
+    marker->setLinePen(Qt::red,1,Qt::DashDotLine);
+    marker->setXValue(51.1);
+    marker->attach(qwtPlot);
+
+    qwtPlot->repaint();
+
+    //it is necesssary, to refresh plot immediately
+    qwtPlot->setAutoReplot(true);
 }
 
 void EnergyCalibration::setTableWidgetProperty(QTableWidget *tableWidget)
@@ -116,22 +140,22 @@ void EnergyCalibration::setTableWidgetProperty(QTableWidget *tableWidget)
     tableWidget->setRowCount(13);
     tableWidget->setColumnCount(13);
 
-    for(int col=0;col<tableWidget->columnCount();col++)
-    {
-        for(int row=0;row<tableWidget->rowCount();row++)
-        {
-            tableWidget->setItem(row,col,new QTableWidgetItem(0));
-        }
-    }
+//    for(int col=0;col<tableWidget->columnCount();col++)
+//    {
+//        for(int row=0;row<tableWidget->rowCount();row++)
+//        {
+//            tableWidget->setItem(row,col,new QTableWidgetItem(0));
+//        }
+//    }
 
 
-    tableWidget->horizontalHeader()->setVisible(false);
-    tableWidget->verticalHeader()->setVisible(false);
+//    tableWidget->horizontalHeader()->setVisible(false);
+//    tableWidget->verticalHeader()->setVisible(false);
 
     tableWidget->horizontalHeader()->setDefaultSectionSize(300);
-    tableWidget->horizontalHeader()->setMinimumSectionSize(100);
-    tableWidget->verticalHeader()->setDefaultSectionSize(300);
-    tableWidget->verticalHeader()->setMinimumSectionSize(100);
+    tableWidget->horizontalHeader()->setMinimumSectionSize(50);
+    tableWidget->verticalHeader()->setDefaultSectionSize(200);
+    tableWidget->verticalHeader()->setMinimumSectionSize(50);
 
     tableWidget->setShowGrid(false);
 
@@ -144,7 +168,7 @@ void EnergyCalibration::setTableWidgetProperty(QTableWidget *tableWidget)
 
 
     tableWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    tableWidget->setMinimumSize(260,260);
+    tableWidget->setMinimumSize(20,20);
 }
 
 void EnergyCalibration::setPlotCurve(QwtPlot *qwtPlot, QVector<QPointF> &data)
@@ -160,6 +184,7 @@ void EnergyCalibration::setPlotCurve(QwtPlot *qwtPlot, QVector<QPointF> &data)
     }
 
 }
+
 void EnergyCalibration::showEnergyProfile()
 {
     unsigned int* eneProfile=nullptr;
@@ -177,20 +202,27 @@ void EnergyCalibration::showEnergyProfile()
             data.push_back(point);
 
         }
-
-        QwtPlot* plot=new QwtPlot();
+        //setPlotProperty(static_cast<QwtPlot*>( ui->tableWidget->cellWidget(int(i/13),int(i%13))));
+        //setPlotCurve(static_cast<QwtPlot*>( ui->tableWidget->cellWidget(int(i/13),int(i%13))),data);
+        //setPlotCurve(static_cast<QwtPlot*>(ui->gridLayout->itemAtPosition(int(i/13),int(i%13))->widget()),data);
+        QwtPlot* plot =new QwtPlot();
         setPlotProperty(plot,data);
-
-        //if have a widget ,replace and delete previous widget
-        ui->gridLayout->addWidget(plot,i/13,i%13);
-        //QwtPlot* item=(QwtPlot*)ui->gridLayout->itemAtPosition(i/13,i%13)->widget();
-        qDebug()<<ui->gridLayout->itemAtPosition(i/13,i%13)->widget()->objectName();
+        //add marker
+        QwtPlotMarker* marker=new QwtPlotMarker("dot");
+        marker->setLineStyle(QwtPlotMarker::VLine);
+        marker->setLinePen(Qt::red,1,Qt::SolidLine);
+        marker->setXValue(energyProfile->GetEnergyRecord(m_nBDMId,m_nDUId,i));
+        marker->attach(plot);
+        //ui->gridLayout->addWidget(plot,int(i/13),int(i%13));
+        ui->tableWidget->setCellWidget(int(i/13),int(i%13),plot);
     }
 }
 
 //test button
 void EnergyCalibration::on_pushButton_11_clicked()
 {
+    //static_cast<QPushButton*>( ui->tableWidget->cellWidget(0,0))->setText("ssss");
+
     energyProfile->ReadEnergyProfile("calibration/EnergyCalibration/energyProfile.dat");
     showEnergyProfile();
 }
@@ -261,4 +293,39 @@ void EnergyCalibration::on_pushButton_7_clicked()
 
     ui->spinBox_2->setValue(m_nDUId);
     showEnergyProfile();
+}
+
+//click table widget
+void EnergyCalibration::on_tableWidget_cellClicked(int row, int column)
+{
+    //qDebug()<<"row:  "<<row<<"   colum:  "<<column;
+    if(ui->tableWidget->cellWidget(row,column)==nullptr)
+    {
+        QMessageBox::information(this,"notice","nothing to clicked");
+        return;
+    }
+
+    QwtPlot* plot=static_cast<QwtPlot*>( ui->tableWidget->cellWidget(row,column));
+    QPoint point=plot->canvas()->mapFromGlobal(QCursor::pos());
+    double xValue=plot->invTransform(QwtPlot::xBottom,point.x());
+
+//    qDebug()<<"point.x"<<point.x()<<"   plot.x:"<<xValue;
+//    qDebug()<<"y:"<<plot->invTransform(QwtPlot::yLeft,point.y());
+
+
+    if(QMessageBox::warning(this,"notice","Are you sure to change it?",
+                            QMessageBox::Yes | QMessageBox::Default,
+                            QMessageBox::No | QMessageBox::Escape)==QMessageBox::Yes)
+    {
+        QwtPlotItemList itemLists=plot->itemList(QwtPlotItem::Rtti_PlotMarker);
+        if(itemLists.size()==2)
+        {
+            static_cast<QwtPlotMarker*>(itemLists[1])->setXValue(xValue);
+            energyProfile->SetEnergyRecord(m_nBDMId,m_nDUId,row*13+column,(int)xValue);
+        }
+        else
+        {
+            qDebug()<<"EnergyCalibration: set plot marker error";
+        }
+    }
 }

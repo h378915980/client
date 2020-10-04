@@ -43,8 +43,12 @@ public:
     float*         GetEnergyCorrFactor(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId);
     /* Return an energy profile array for a specific Crystal */
     uint32*        GetEnergyProfile(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId);
-    /*memset m_pPositionMap ,m_pPositonTable and m_pMassPoint  0 */
+    /*memset all array to  0 */
     void           Clear();
+    /* Return an energy record of x coordinate for a specific Crystal */
+    uint32         GetEnergyRecord(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId);
+    /* Set an energy record of x coordinate for a specific Crystal */
+    void           SetEnergyRecord(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId,uint32 f_nXValue);
 
 private:
     /* Get an energy correction factor array from an energy profile */
@@ -65,6 +69,8 @@ private:
     uint32*        m_pEnergyProfile;
     /* Pointer of energy correction factor array. Record factors between 0 and 1 */
     float*         m_pEnergyCorrFactor;
+    /* Pointer of energy record. Record x coordinate of max counts near 51.1 between 0 and 1000 */
+    uint32*        m_pEnergyRecord;
 
 };
 
