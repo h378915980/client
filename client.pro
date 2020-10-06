@@ -19,9 +19,9 @@ unix|win32: LIBS += -L$$PWD/tool/compress/lib/ -lquazip
 INCLUDEPATH += $$PWD/tool/compress/include/quazip/
 DEPENDPATH += $$PWD/tool/compress/include/quazip/
 
-unix|win32: LIBS +=-L/home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/lib/  -lqwt
-INCLUDEPATH += /home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/include/qwt
-DEPENDPATH += /home/hepeiyuan/Qt5.14.2/5.14.2/gcc_64/include/qwt
+unix|win32: LIBS +=-L$$PWD/tool/qwt/lib/  -lqwt
+INCLUDEPATH += $$PWD/tool/qwt/include
+DEPENDPATH += $$PWD/tool/qwt/include
 
 SOURCES += \
     calibration/energy/UEnergyProfile.cpp \
