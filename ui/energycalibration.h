@@ -62,8 +62,6 @@ private:
 
     void showEnergyProfile();
 
-    void setPlotCurve(QwtPlot* qwtPlot,QVector<QPointF> &data);
-
 };
 
 #endif // ENERGYCALIBRATION_H

@@ -43,6 +43,8 @@ public:
     float*         GetEnergyCorrFactor(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId);
     /* Return an energy profile array for a specific Crystal */
     uint32*        GetEnergyProfile(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId);
+    /* Set an energy correction factor array for a specific Crystal */
+    void           SetEnergyCorrFactor(uint32 f_nBDMId, uint32 f_nDUId, uint32 f_nLocalCrystalId,float f_fValue);
     /*memset all array to  0 */
     void           Clear();
     /* Return an energy record of x coordinate for a specific Crystal */

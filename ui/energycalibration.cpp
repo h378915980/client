@@ -9,16 +9,7 @@ EnergyCalibration::EnergyCalibration(QWidget *parent) :
     energyProfile=new UEnergyProfile();
 
     setTableWidgetProperty(ui->tableWidget);
-//    for(int i=0;i<13;i++)
-//    {
-//        for(int j=0;j<13;j++)
-//        {
-//            //QwtPlot* plot=new QwtPlot();
-//            //setPlotProperty(plot);
-//            ui->tableWidget->setCellWidget(i,j,new QwtPlot());
-//            //ui->gridLayout->addWidget(plot,i,j);
-//        }
-//    }
+
 }
 
 EnergyCalibration::~EnergyCalibration()
@@ -124,7 +115,7 @@ void EnergyCalibration::setPlotProperty(QwtPlot *qwtPlot,QVector<QPointF> &data)
     QwtPlotMarker* marker=new QwtPlotMarker("511");
     marker->setLineStyle(QwtPlotMarker::VLine);
     marker->setLinePen(Qt::red,1,Qt::DashDotLine);
-    marker->setXValue(51.1);
+    marker->setXValue(511);
     marker->attach(qwtPlot);
 
     qwtPlot->repaint();
@@ -157,7 +148,7 @@ void EnergyCalibration::setTableWidgetProperty(QTableWidget *tableWidget)
     tableWidget->verticalHeader()->setDefaultSectionSize(200);
     tableWidget->verticalHeader()->setMinimumSectionSize(50);
 
-    tableWidget->setShowGrid(false);
+    tableWidget->setShowGrid(true);
 
     tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
     tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -171,19 +162,6 @@ void EnergyCalibration::setTableWidgetProperty(QTableWidget *tableWidget)
     tableWidget->setMinimumSize(20,20);
 }
 
-void EnergyCalibration::setPlotCurve(QwtPlot *qwtPlot, QVector<QPointF> &data)
-{
-    QwtPlotItemList itemLists=qwtPlot->itemList(QwtPlotItem::Rtti_PlotCurve);
-    if(itemLists.size()==1)
-    {
-        static_cast<QwtPlotCurve*>(itemLists[0])->setSamples(data);
-    }
-    else
-    {
-        qDebug()<<"EnergyCalibration: set plot curve error";
-    }
-
-}
 
 void EnergyCalibration::showEnergyProfile()
 {
@@ -192,28 +170,21 @@ void EnergyCalibration::showEnergyProfile()
     for(int i=0;i<13*13;i++)
     {
         eneProfile=energyProfile->GetEnergyProfile(m_nBDMId,m_nDUId,i);
+        float eneCorrFactor=*energyProfile->GetEnergyCorrFactor(m_nBDMId,m_nDUId,i);
 
         QVector<QPointF> data;
         for(int j=0;j<1000;j++)
         {
             QPointF point;
-            point.setX(j);
+            //note:j*10 +5 reason refer UenergyProfile.cpp Normalization func
+            point.setX((j*10+5) * eneCorrFactor);
             point.setY(eneProfile[j]);
             data.push_back(point);
 
         }
-        //setPlotProperty(static_cast<QwtPlot*>( ui->tableWidget->cellWidget(int(i/13),int(i%13))));
-        //setPlotCurve(static_cast<QwtPlot*>( ui->tableWidget->cellWidget(int(i/13),int(i%13))),data);
-        //setPlotCurve(static_cast<QwtPlot*>(ui->gridLayout->itemAtPosition(int(i/13),int(i%13))->widget()),data);
+
         QwtPlot* plot =new QwtPlot();
         setPlotProperty(plot,data);
-        //add marker
-        QwtPlotMarker* marker=new QwtPlotMarker("dot");
-        marker->setLineStyle(QwtPlotMarker::VLine);
-        marker->setLinePen(Qt::red,1,Qt::SolidLine);
-        marker->setXValue(energyProfile->GetEnergyRecord(m_nBDMId,m_nDUId,i));
-        marker->attach(plot);
-        //ui->gridLayout->addWidget(plot,int(i/13),int(i%13));
         ui->tableWidget->setCellWidget(int(i/13),int(i%13),plot);
     }
 }
@@ -222,16 +193,17 @@ void EnergyCalibration::showEnergyProfile()
 void EnergyCalibration::on_pushButton_11_clicked()
 {
     //static_cast<QPushButton*>( ui->tableWidget->cellWidget(0,0))->setText("ssss");
-
+    energyProfile->Clear();
     energyProfile->ReadEnergyProfile("calibration/EnergyCalibration/energyProfile.dat");
+    energyProfile->ReadEnergyCorrFactor("calibration/EnergyCalibration/energyCorrFactor.dat");
     showEnergyProfile();
 }
 
 //save energy corr factor
 void EnergyCalibration::on_pushButton_3_clicked()
 {
-    energyProfile->CreateEnergyCorrFactor();
     energyProfile->SaveEnergyCorrFactor("calibration/EnergyCalibration/energyCorrFactor.dat");
+    showEnergyProfile();
 }
 
 //bdm  pre
@@ -307,24 +279,26 @@ void EnergyCalibration::on_tableWidget_cellClicked(int row, int column)
 
     QwtPlot* plot=static_cast<QwtPlot*>( ui->tableWidget->cellWidget(row,column));
     QPoint point=plot->canvas()->mapFromGlobal(QCursor::pos());
-    double xValue=plot->invTransform(QwtPlot::xBottom,point.x());
+    double xValue=plot->invTransform(QwtPlot::xBottom,point.x());  //note: 10000
 
-//    qDebug()<<"point.x"<<point.x()<<"   plot.x:"<<xValue;
-//    qDebug()<<"y:"<<plot->invTransform(QwtPlot::yLeft,point.y());
+    //    qDebug()<<"point.x"<<point.x()<<"   plot.x:"<<xValue;
+    //    qDebug()<<"y:"<<plot->invTransform(QwtPlot::yLeft,point.y());
 
 
-    if(QMessageBox::warning(this,"notice","Are you sure to change it?",
-                            QMessageBox::Yes | QMessageBox::Default,
-                            QMessageBox::No | QMessageBox::Escape)==QMessageBox::Yes)
-    {
-        QwtPlotItemList itemLists=plot->itemList(QwtPlotItem::Rtti_PlotMarker);
-        if(itemLists.size()==2)
+        if(QMessageBox::warning(this,"notice","Are you sure to change it?",
+                                QMessageBox::Yes | QMessageBox::Default,
+                                QMessageBox::No | QMessageBox::Escape)==QMessageBox::Yes)
         {
-            static_cast<QwtPlotMarker*>(itemLists[1])->setXValue(xValue);
-            energyProfile->SetEnergyRecord(m_nBDMId,m_nDUId,row*13+column,(int)xValue);
-        }
-        else
-        {
+            QwtPlotItemList itemLists=plot->itemList(QwtPlotItem::Rtti_PlotMarker);
+            if(itemLists.size()==1)
+            {
+                static_cast<QwtPlotMarker*>(itemLists[0])->setXValue(xValue);
+                double value =511 / xValue * (*energyProfile->GetEnergyCorrFactor(m_nBDMId,m_nDUId,row*13+column));
+                energyProfile->SetEnergyCorrFactor(m_nBDMId,m_nDUId,row*13+column,value);
+
+            }
+            else
+            {
             qDebug()<<"EnergyCalibration: set plot marker error";
         }
     }
