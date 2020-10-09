@@ -6,6 +6,13 @@
 #define POSITION_MAP_SIZE   256
 #define MASS_POINT_SIZE     13
 
+#define MAP_VALUE_THRESHOLD     50
+
+QColor ConfirmLineColor(0,0,0);
+QColor ConfirmPointColor(255, 0, 0);
+QColor ConfirmBackgroudColor(255,255,255);
+
+
 ConfirmMassPoint::ConfirmMassPoint(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfirmMassPoint)
@@ -114,7 +121,7 @@ void ConfirmMassPoint::on_tableWidget_cellClicked(int row, int column)
             //not in the row set, mark
             for(int i=0;i<ui->tableWidget->columnCount();i++)
             {
-                ui->tableWidget->item(row,i)->setBackground(QBrush(QColor(255, 0, 0)));
+                ui->tableWidget->item(row,i)->setBackground(QBrush(ConfirmLineColor));
                 rowSet.insert(row);
             }
         }
@@ -125,7 +132,15 @@ void ConfirmMassPoint::on_tableWidget_cellClicked(int row, int column)
             for(int j=0;j<ui->tableWidget->columnCount();j++)
             {
                 value=specPosMap[posInSet*ui->tableWidget->columnCount()+j];
-                ui->tableWidget->item(posInSet,j)->setBackground(QBrush(QColor(0 , 0, value)));
+                if(value > MAP_VALUE_THRESHOLD)
+                {
+                    ui->tableWidget->item(posInSet,j)->setBackground(QBrush(ConfirmPointColor));
+                }
+                else
+                {
+                    ui->tableWidget->item(posInSet,j)->setBackground(QBrush(ConfirmBackgroudColor));
+                }
+                //ui->tableWidget->item(posInSet,j)->setBackground(QBrush(ConfirmPointColor));
             }
 
             //erase this row pos in row set
@@ -154,7 +169,7 @@ void ConfirmMassPoint::on_tableWidget_cellClicked(int row, int column)
             //not in the col set, mark
             for(int i=0;i<ui->tableWidget->rowCount();i++)
             {
-                ui->tableWidget->item(i,column)->setBackground(QBrush(QColor(255, 0, 0)));
+                ui->tableWidget->item(i,column)->setBackground(QBrush(ConfirmLineColor));
                 colSet.insert(column);
             }
         }
@@ -165,7 +180,15 @@ void ConfirmMassPoint::on_tableWidget_cellClicked(int row, int column)
             for(int j=0;j<ui->tableWidget->rowCount();j++)
             {
                 value=specPosMap[j*ui->tableWidget->columnCount()+posInSet];
-                ui->tableWidget->item(j,posInSet)->setBackground(QBrush(QColor(0 , 0, value)));
+                if(value > MAP_VALUE_THRESHOLD)
+                {
+                    ui->tableWidget->item(j,posInSet)->setBackground(QBrush(ConfirmPointColor));
+                }
+                else
+                {
+                    ui->tableWidget->item(j,posInSet)->setBackground(QBrush(ConfirmBackgroudColor));
+                }
+                //ui->tableWidget->item(j,posInSet)->setBackground(QBrush(ConfirmPointColor));
             }
 
             //erase this col pos in col set
@@ -200,9 +223,15 @@ void ConfirmMassPoint::showPositionMapOnTable()
         for(int col=0;col<ui->tableWidget->columnCount();col++)
         {
             value=specPosMap[row*ui->tableWidget->rowCount()+col];
-            //qDebug()<<value;
-            //如何将value映射到0-255范围内?目前来看直接显示是可以的
-            ui->tableWidget->item(row,col)->setBackground(QBrush(QColor(0 , 0, value)));
+            if(value > MAP_VALUE_THRESHOLD)
+            {
+                ui->tableWidget->item(row,col)->setBackground(QBrush(ConfirmPointColor));
+            }
+            else
+            {
+                ui->tableWidget->item(row,col)->setBackground(QBrush(ConfirmBackgroudColor));
+            }
+
         }
     }
 
@@ -211,7 +240,7 @@ void ConfirmMassPoint::showPositionMapOnTable()
     {
         for(int j=0;j<ui->tableWidget->columnCount();j++)
         {
-            ui->tableWidget->item(*iterRow,j)->setBackground(QBrush(QColor(255, 0, 0)));
+            ui->tableWidget->item(*iterRow,j)->setBackground(QBrush(ConfirmLineColor));
         }
     }
 
@@ -219,7 +248,7 @@ void ConfirmMassPoint::showPositionMapOnTable()
     {
         for(int i=0;i<ui->tableWidget->rowCount();i++)
         {
-            ui->tableWidget->item(i,*iterCol)->setBackground(QBrush(QColor(255, 0, 0)));
+            ui->tableWidget->item(i,*iterCol)->setBackground(QBrush(ConfirmLineColor));
         }
     }
 

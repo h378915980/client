@@ -7,8 +7,12 @@
 #define POSITION_DU_NUM         4
 #define POSITION_CRYSTAL_SIZE   13
 
-const unsigned char ColorR[13]={255,200,240,161,102,200,94,77,60,92,199,150};
-const unsigned char ColorG[13]={100,150,240,226,170,250,162,138,87,68,9,0};
+#define MAP_VALUE_THRESHOLD     50
+
+
+QColor PositionLineColor(0,0,0);
+QColor PositionPointColor(255, 0, 0);
+QColor PositionBackgroudColor(255,255,255);
 
 PositionMap::PositionMap(QWidget *parent) :
     QWidget(parent),
@@ -72,10 +76,7 @@ void PositionMap::on_pushButton_6_clicked()
                 if(value!=table[(row-1)*ui->tableWidget_9->rowCount()+col]
                         ||value!=table[row*ui->tableWidget_9->rowCount()+col-1])
                 {
-                    ui->tableWidget_9->item(row,col)->setBackground(QBrush(
-                        QColor( ColorR[(int)(value/POSITION_CRYSTAL_SIZE)] ,
-                                ColorG[(int)(value/POSITION_CRYSTAL_SIZE)],
-                                100)));
+                    ui->tableWidget_9->item(row,col)->setBackground(QBrush(PositionLineColor));
                 }
             }
 
@@ -193,7 +194,7 @@ void PositionMap::on_pushButton_clicked()
 
     //show the 0~3 DU's Position Map of current BDM on table widget
     showPositionMap();
-
+    showPositionTable();
 }
 
 //begin button Position Table
@@ -272,7 +273,14 @@ void PositionMap::showSpecificPositionMap(QTableWidget *tableWidget, unsigned in
         for(int col=0;col<tableWidget->columnCount();col++)
         {
             value=map[row*tableWidget->rowCount()+col];
-            tableWidget->item(row,col)->setBackground(QBrush(QColor(0 , 0, value)));
+            if(value > MAP_VALUE_THRESHOLD)
+            {
+                tableWidget->item(row,col)->setBackground(QBrush(PositionPointColor));
+            }
+            else
+            {
+                tableWidget->item(row,col)->setBackground(QBrush(PositionBackgroudColor));
+            }
         }
     }
 
@@ -282,7 +290,7 @@ void PositionMap::showSpecificPositionMap(QTableWidget *tableWidget, unsigned in
     {
         for(int j=0;j<tableWidget->columnCount();j++)
         {
-            tableWidget->item(*iterRow,j)->setBackground(QBrush(QColor(255, 0, 0)));
+            tableWidget->item(*iterRow,j)->setBackground(QBrush(PositionLineColor));
         }
     }
 
@@ -290,7 +298,7 @@ void PositionMap::showSpecificPositionMap(QTableWidget *tableWidget, unsigned in
     {
         for(int i=0;i<tableWidget->rowCount();i++)
         {
-            tableWidget->item(i,*iterCol)->setBackground(QBrush(QColor(255, 0, 0)));
+            tableWidget->item(i,*iterCol)->setBackground(QBrush(PositionLineColor));
         }
     }
 }
@@ -314,17 +322,21 @@ void PositionMap::showSpecificPositionTable(QTableWidget *tableWidget, unsigned 
             mapValue=map[row*tableWidget->rowCount()+col];
 
             //show map point
-            tableWidget->item(row,col)->setBackground(QBrush(QColor( 0 ,0,mapValue)));
-
-            //show color
-            if(tableValue!=table[(row-1)*ui->tableWidget_9->rowCount()+col]
-                    ||tableValue!=table[row*ui->tableWidget_9->rowCount()+col-1])
+            if(mapValue > MAP_VALUE_THRESHOLD)
             {
-//                tableWidget->item(row,col)->setBackground(QBrush(
-//                    QColor( ColorR[(int)(tableValue/POSITION_CRYSTAL_SIZE)] ,
-//                            ColorG[(int)(tableValue/POSITION_CRYSTAL_SIZE)],
-//                            tableValue)));
-                tableWidget->item(row,col)->setBackground(QBrush(QColor(255,0,0)));
+                tableWidget->item(row,col)->setBackground(QBrush(PositionPointColor));
+            }
+            else
+            {
+                tableWidget->item(row,col)->setBackground(QBrush(PositionBackgroudColor));
+            }
+            //tableWidget->item(row,col)->setBackground(QBrush(QColor( 0 ,0,mapValue)));
+
+            //show line color
+            if(tableValue!=table[(row-1)*tableWidget->rowCount()+col]
+                    ||tableValue!=table[row*tableWidget->rowCount()+col-1])
+            {
+                tableWidget->item(row,col)->setBackground(QBrush(PositionLineColor));
             }
         }
     }

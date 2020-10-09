@@ -214,7 +214,7 @@ void UPositionMap::CreatePositionTable()
             memcpy(l_pTempMap, m_pPositionMap + i * m_nDUNum * m_nPositionSize * m_nPositionSize + j * m_nPositionSize * m_nPositionSize, sizeof(uint32) * m_nPositionSize * m_nPositionSize);
             /*************/ 
             /* Important */
-			KMeanAlgorithm1D(l_pTempMap, l_pMassPoint);
+            //KMeanAlgorithm1D(l_pTempMap, l_pMassPoint);
             KMeanAlgorithm2D(l_pTempMap, l_pTempTable, l_pMassPoint);
             /*************/
             memcpy(m_pPositionTable + i * m_nDUNum * m_nPositionSize * m_nPositionSize + j * m_nPositionSize * m_nPositionSize, l_pTempTable, sizeof(uint8) * m_nPositionSize * m_nPositionSize);
